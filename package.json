@@ -1,0 +1,41 @@
+{
+  "name": "new-tab-page",
+  "version": "1.0.0",
+  "description": "A Vue.js web extension",
+  "author": "James Hibbard <1940994+jameshibbard@users.noreply.github.com>",
+  "license": "MIT",
+  "scripts": {
+    "build": "cross-env NODE_ENV=production webpack --hide-modules",
+    "build:dev": "cross-env NODE_ENV=development webpack --hide-modules",
+    "build-zip": "node scripts/build-zip.js",
+    "watch": "npm run build -- --watch",
+    "watch:dev": "cross-env HMR=true npm run build:dev -- --watch"
+  },
+  "dependencies": {
+    "axios": "^0.21.1",
+    "vue": "^2.6.12",
+    "vue-awesome": "^3.5.4"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.12.10",
+    "@babel/plugin-proposal-optional-chaining": "^7.12.7",
+    "@babel/preset-env": "^7.12.11",
+    "@types/chrome": "^0.0.74",
+    "archiver": "^3.1.1",
+    "babel-loader": "^8.2.2",
+    "copy-webpack-plugin": "^4.5.3",
+    "cross-env": "^5.2.1",
+    "css-loader": "^0.28.11",
+    "ejs": "^2.7.4",
+    "file-loader": "^1.1.11",
+    "mini-css-extract-plugin": "^0.4.4",
+    "node-sass": "^4.14.1",
+    "sass-loader": "^7.3.1",
+    "vue-loader": "^15.9.6",
+    "vue-template-compiler": "^2.6.12",
+    "webpack": "^4.44.2",
+    "webpack-chrome-extension-reloader": "^0.8.3",
+    "webpack-cli": "^3.3.12",
+    "webpack-shell-plugin": "^0.5.0"
+  }
+}
