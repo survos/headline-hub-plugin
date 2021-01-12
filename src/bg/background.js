@@ -4,6 +4,33 @@
 //     "sample_setting": "This is how you use Store.js to remember values"
 // });
 
+// chrome.tabs.onUpdated.addListener(function (tabId , info) {
+//     if (info.status === 'complete') {
+//         console.log(tabId, info);
+//         chrome.tabs.get(tabId, (tab) => {
+//             // first, do we have this media.
+//             checkMedia(tab.url)
+//             console.log(tab);
+//             chrome.tabs.sendMessage(tabId, {
+//                 url: tab.url,
+//                 host: (new URL(tab.url)).host,
+//                 status: 'has media, etc...'
+//             });
+//         })
+//     }
+// });
+
+
+
+function checkMedia(url)
+{
+    let urlData = new URL(url);
+    console.log(urlData, urlData.host);
+
+
+}
+
+
 var email;
 chrome.identity.getProfileUserInfo(function(userInfo) {
     console.log(userInfo);
@@ -17,17 +44,22 @@ chrome.identity.getProfileUserInfo(function(userInfo) {
 chrome.extension.onMessage.addListener(
 
   function(request, sender, sendResponse) {
-  	console.log(sender.tab.url);
-  	// const base = 'https://staging-5em2ouy-6qpek36k2ejf6.eu.s5y.io';
-  	const base = 'https://news.wip';
+      console.log(request);
+  	console.log(`background received a message from tab ${sender.tab.id} (${sender.tab.url} is now loaded.`);
+
+
+  	const base = 'https://staging-5em2ouy-6qpek36k2ejf6.eu.s5y.io';
+  	// const base = 'https://news.wip';
       let url = base + '/plugin/check.json';
       // let url = 'https://127.0.0.1:8000/api2.0/tags/2.json';
 
       const myHeaders =
           {
-              'X-PLUGIN-AUTH-TOKEN': email,
+              'x-plugin-auth-token': email,
               'Content-Type': 'application/json'
           };
+
+      let urlData = new URL(sender.tab.url);
 
       const myRequest = new Request(url + '?' + new URLSearchParams({
           url: sender.tab.url,
@@ -35,7 +67,8 @@ chrome.extension.onMessage.addListener(
       }), {
           // agent: new HttpsProxyAgent('http://127.0.0.1:7080'),
           headers: myHeaders,
-          credentials: "include"})
+          credentials: "include"}
+          )
 
       // const myRequest = new Request(url, {
       //     method: 'GET',
@@ -44,10 +77,13 @@ chrome.extension.onMessage.addListener(
       //     cache: 'default',
       // });
 
-      console.log("Fetching " + myRequest.url);
+      console.log("Fetching " + myRequest.url, myHeaders);
 
 
-      fetch(myRequest)
+      fetch(myRequest, {
+          // agent: new HttpsProxyAgent('http://127.0.0.1:7080'),
+          headers: myHeaders,
+          credentials: "include"})
           .then(
               function(response) {
                   if (response.status !== 200) {

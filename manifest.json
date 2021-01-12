@@ -1,6 +1,6 @@
 {
   "name": "ext: Headline Hub Checker",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "manifest_version": 2,
   "description": "Tools for adding articles to headlinehub.org",
   "homepage_url": "http://headlinehub.org",
@@ -49,6 +49,7 @@
         "*://*.stackoverflow.com/*",
         "*://*.stackexchange.com/*",
         "*://*.symfony.com/*",
+        "*://*.netflix.com/*",
         "*://*.twitter.com/*"
       ]
     }

@@ -1,28 +1,40 @@
-chrome.extension.sendMessage({}, function(response) {
+
+chrome.extension.sendMessage({
+		'type': 'tab loaded, sending a kickoff message from inject.'
+	},
+	function(response) {
 	var readyStateCheckInterval = setInterval(function() {
 	if (document.readyState === "complete") {
 		clearInterval(readyStateCheckInterval);
 
 		// ----------------------------------------------------------
 		// This part of the script triggers when page is done loading
-		console.log("Hello. This message was sent from scripts/inject.js");
+		console.log("This message was sent from scripts/inject.js");
+		console.log(response);
 		// ----------------------------------------------------------
 
 	}
 	}, 10);
 });
 
-console.log('Listening for messages in inject.js');
+console.log('Setting up listener inject.js');
 
-chrome.runtime.onMessage.addListener(gotMessage);
-
-function gotMessage(message, sender, sendResponse) {
+chrome.runtime.onMessage.addListener(function gotMessage(message, sender, sendResponse) {
+	console.log(message);
 
 	// @todo: refactor different types of messages, no_media, blocked_media, new_article, etc.
 
-	console.log('Received message ' + message.originalUrl);
+	let host = message.host;
+	console.log('Received message ' + message.url + ' ' + host);
+	let urlData = new URL(message.url);
+	console.log(urlData);
+
+	// if it's not news, don't even open up the site.
+	if (message.status == 'not_news') {
+		return; //
+	}
+
 	console.log(message);
-	const host = message.host;
 	if (message.media) {
 		removeClutter(message);
 	}
@@ -61,7 +73,7 @@ function gotMessage(message, sender, sendResponse) {
 	let candidate = findFormAnchor(); // the name of the element, like h1, that marks the start of the relevant content.  Our form will go above this.
 
 	let iframeElement = createIFrame(message);
-	console.log(iframeElement);
+	// console.log(iframeElement);
 	let form = GFG_Fun(message, iframeElement);
 
 	let hhDiv = createHeadlineHubDiv(candidate, message);
@@ -127,7 +139,7 @@ function gotMessage(message, sender, sendResponse) {
 		hhDiv.innerHTML += table.outerHTML;
 		hhDiv.appendChild(table);
 	} else {
-		hhDiv.innerHTML += "No media!!";
+		// hhDiv.innerHTML += "No media!!";
 	}
 
 	articleMsg = document.createElement('div');
@@ -215,7 +227,7 @@ function gotMessage(message, sender, sendResponse) {
 
 	// console.log('iframe.contentWindow =', iframe.contentWindow);
 
-}
+});
 
 	function GFG_Fun(message, iframe) {
 
@@ -234,19 +246,13 @@ function gotMessage(message, sender, sendResponse) {
 		docBody.setAttribute("name", "document");
 		// docBody.setAttribute("value", document.outerHTML);
 		// docBody.value = document.body.innerText;
-		docBody.innerHTML = document.body.outerHTML;
+
+		docBody.innerHTML =  document.head.outerHTML;
+		if (message.mediaId) {
+			docBody.innerHTML +=  document.body.outerHTML;
+		}
 		// console.log(docBody.value);
 		form.appendChild(docBody);
-		form.appendChild(br.cloneNode());
-
-		// Create an input element for document HTML, which the PHP will parse
-		var head = document.createElement("textarea");
-		head.setAttribute("name", "head");
-		// docBody.setAttribute("value", document.outerHTML);
-		// docBody.value = document.body.innerText;
-		head.innerHTML = document.head.outerHTML;
-		// console.log(docBody.value);
-		form.appendChild(head);
 		form.appendChild(br.cloneNode());
 
 		// Create an input element for Full Name
@@ -257,17 +263,18 @@ function gotMessage(message, sender, sendResponse) {
 		FN.setAttribute("value", message.url);
 		FN.value = message.url;
 
-		// Create an input element for date of birth
-		var DOB = document.createElement("input");
-		DOB.setAttribute("type", "text");
-		DOB.setAttribute("name", "host");
-		DOB.setAttribute("placeholder", message.ho);
+		// // Create an input element for the host
+		// var HOST = document.createElement("input");
+		// HOST.setAttribute("type", "text");
+		// HOST.setAttribute("name", "host");
+		// HOST.setAttribute("value", message.host);
 
-		// Create an input element for emailID
-		var EID = document.createElement("input");
-		EID.setAttribute("type", "text");
-		EID.setAttribute("name", "emailID");
-		EID.setAttribute("placeholder", "E-Mail ID");
+		// Create an input element for mediaID
+		var mediaId = document.createElement("input");
+		mediaId.setAttribute("type", "number");
+		mediaId.setAttribute("name", "media_id");
+		mediaId.setAttribute("value", message.media_id);
+		mediaId.setAttribute("placeholder", "Media ID");
 
 		// Create an input element for password
 		var PWD = document.createElement("input");
@@ -291,12 +298,12 @@ function gotMessage(message, sender, sendResponse) {
 		// Inserting a line break
 		form.appendChild(br.cloneNode());
 
-		// Append the DOB to the form
-		form.appendChild(DOB);
-		form.appendChild(br.cloneNode());
+		// Append the HOST to the form
+		// form.appendChild(HOST);
+		// form.appendChild(br.cloneNode());
 
 		// Append the emailID to the form
-		form.appendChild(EID);
+		form.appendChild(mediaId);
 		form.appendChild(br.cloneNode());
 
 		// Append the Password to the form
@@ -372,7 +379,7 @@ function createHeadlineHubDiv(candidate, message)
 	const hhDiv = document.createElement('div');
 
 	hhDiv.innerHTML += `<h1>...Loading before ...${candidate} </h1>`;
-	hhDiv.innerHTML += message.suggestion_form;
+	// hhDiv.innerHTML += message.suggestion_form;
 	hhDiv.innerHTML += message.html;
 
 	hhDiv.style['border-style'] = 'dashed';
