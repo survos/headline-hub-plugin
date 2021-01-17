@@ -46,11 +46,16 @@
         "*://*.tobacco.org/*",
         "*://*.amazon.com/*",
         "*://*.facebook.com/*",
+        "*://*.youtube.com/*",
         "*://*.stackoverflow.com/*",
         "*://*.stackexchange.com/*",
         "*://*.symfony.com/*",
         "*://*.netflix.com/*",
-        "*://*.twitter.com/*"
+        "*://*.twitter.com/*",
+        "*://*.php.net/*",
+        "*://*.intuit.com/*",
+        "*://*.github.com/*",
+        "*://127.0.0.1/*"
       ]
     }
   ]
