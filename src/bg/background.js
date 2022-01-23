@@ -20,7 +20,13 @@
 //     }
 // });
 
-
+chrome.browserAction.onClicked.addListener(function(tab) {
+    // Send a message to the active tab
+    chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
+        var activeTab = tabs[0];
+        chrome.tabs.sendMessage(activeTab.id, {"message": "clicked_browser_action"});
+    });
+});
 
 function checkMedia(url)
 {
@@ -48,8 +54,8 @@ chrome.extension.onMessage.addListener(
   	console.log(`background received a message from tab ${sender.tab.id} (${sender.tab.url} is now loaded.`);
 
 
-  	const base = 'https://staging-5em2ouy-6qpek36k2ejf6.eu.s5y.io';
-  	// const base = 'https://news.wip';
+  	// const base = 'https://staging-5em2ouy-6qpek36k2ejf6.eu.s5y.io';
+  	const base = 'https://hub.wip';
       let url = base + '/plugin/check.json';
       // let url = 'https://127.0.0.1:8000/api2.0/tags/2.json';
 

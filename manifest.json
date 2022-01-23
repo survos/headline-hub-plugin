@@ -5,10 +5,15 @@
   "description": "Tools for adding articles to headlinehub.org",
   "homepage_url": "http://headlinehub.org",
   "icons": {
-    "16": "icons/icon16.png",
-    "48": "icons/icon48.png",
-    "128": "icons/icon128.png"
+    "16": "icons/favicon-16x16.png",
+    "32": "icons/favicon-32x32.png"
   },
+  "browser_action": {
+    "default_title": "HeadlineHub Check",
+    "default_icon": "icons/favicon-32x32.png",
+    "default_popup": "src/page_action/page_action.html"
+  },
+
   "default_locale": "en",
   "background": {
     "scripts": [
@@ -17,11 +22,6 @@
     "persistent": true
   },
   "options_page": "src/options_custom/index.html",
-  "page_action": {
-    "default_icon": "icons/icon19.png",
-    "default_title": "Action!",
-    "default_popup": "src/page_action/page_action.html"
-  },
   "permissions": [
     "identity",
     "identity.email",
