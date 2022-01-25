@@ -11,7 +11,7 @@
   "browser_action": {
     "default_title": "HeadlineHub Check",
     "default_icon": "icons/favicon-32x32.png",
-    "default_popup": "src/page_action/page_action.html"
+    "default_popup": "src/popup.html"
   },
 
   "default_locale": "en",
@@ -21,8 +21,12 @@
     ],
     "persistent": true
   },
-  "options_page": "src/options_custom/index.html",
+  "options_ui": {
+    "page": "src/options_custom/index.html",
+    "open_in_tab": false
+  },
   "permissions": [
+    "storage",
     "identity",
     "identity.email",
     "contextMenus",

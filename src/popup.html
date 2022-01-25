@@ -1,23 +1,16 @@
-<!doctype html>
+<!DOCTYPE html>
 <html>
 <head>
-    <title>Popup</title>
-<!--    <link href="css/popup.css" rel="stylesheet" type="text/css">-->
-
 </head>
-
 <body>
-
-<script src="../js/popup.js"></script>
-
 <p id="demo">=a</p>
+
 <button type="button" id="do-count">Count</button>
 
 
-
 <div id="mainPopup">
-<h1>Hello HH!</h1>
-<p>To shut this popup down, edit the manifest file and remove the "default popup" key. </p>
+    <h1 id="host">Hello HH!</h1>
+    <p>To shut this popup down, edit the manifest file and remove the "default popup" key. </p>
 </div>
 
 <div id="media-name">The domain is ...</div>
@@ -29,5 +22,8 @@ Width: <input name="width" value="30%">
 <button id="save-button">Edit Article</button>
 <button id="save-button">Edit Story</button>
 
+
+<button type="button" id="do-count">Count</button>
+<script src="js/popup.js"></script>
 </body>
 </html>
