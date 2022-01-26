@@ -21,16 +21,15 @@
     ],
     "persistent": true
   },
-  "options_ui": {
-    "page": "src/options_custom/index.html",
-    "open_in_tab": false
-  },
+  "options_page": "src/options.html",
   "permissions": [
     "storage",
     "identity",
     "identity.email",
     "contextMenus",
-    "tabs"
+    "activeTab",
+    "tabs",
+    "background"
   ],
   "content_scripts": [
     {
@@ -45,8 +44,8 @@
         "src/inject/inject.js"
       ],
       "exclude_matches": [
-        "*://*.wip/*",
         "*://*.google.com/*",
+        "*://*.hub.wip/*",
         "*://*.tobacco.org/*",
         "*://*.amazon.com/*",
         "*://*.facebook.com/*",

@@ -7,8 +7,9 @@ chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
     var currentTab = tabs[0]; // there will be only one in this array
     document.getElementById('media-name').textContent = currentTab.url;
 
-    chrome.runtime.sendMessage({
+    chrome.extension.sendMessage({
         code: "check_media",
+        tabId: currentTab.id,
         url: currentTab.url
     }, (response) => {
         console.log(response);

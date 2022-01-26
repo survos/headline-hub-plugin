@@ -1,6 +1,7 @@
 // inject our iframe into the HTML, and highlight the title, date, etc. based on the media queries.
 
 chrome.extension.sendMessage({
+        'code': 'welcome',
         'type': 'tab loaded, sending a kickoff message from inject.'
     },
     function (response) {
@@ -23,10 +24,26 @@ console.log('Setting up listener inject.js');
 chrome.runtime.onMessage.addListener(function gotMessage(message, sender, sendResponse) {
     console.log(message, sender, sendResponse);
 
-    // @todo: refactor different types of messages, no_media, blocked_media, new_article, etc.
+    console.assert(message.code, "Missing code in message.");
+    switch (message.code) {
+        case 'check_url_received':
+            updateContent(message);
+            // if there's no media, we should see if the plugin is active, if so, auto-add the iframe with the new media page.
+            console.log(message);
+            sendResponse('ok');
+            break;
+        default:
+            console.log(message.code + ' is being handled elsewhere, perhaps in background?');
+            sendResponse(message.code);
+    }
+});
 
+function updateContent(message)
+{
+
+    // @todo: refactor different types of messages, no_media, blocked_media, new_article, etc.
     let host = message.host;
-    console.log('Received message ' + message.url + ' ' + host);
+    console.log('Received message ' + message.url, message);
     let urlData = new URL(message.url);
     console.log(urlData);
 
@@ -37,7 +54,7 @@ chrome.runtime.onMessage.addListener(function gotMessage(message, sender, sendRe
 
     console.log(message);
     if (message.media) {
-        removeClutter(message);
+        // removeClutter(message);
     }
 
     // create a style element
@@ -73,11 +90,11 @@ chrome.runtime.onMessage.addListener(function gotMessage(message, sender, sendRe
 
     let candidate = findFormAnchor(); // the name of the element, like h1, that marks the start of the relevant content.  Our form will go above this.
 
-    // let iframeElement = createIFrame(message);
-    // let form = GFG_Fun(message, iframeElement);
+    let iframeElement = createIFrame(message);
+    let form = GFG_Fun(message, iframeElement);
 
     let hhDiv = createHeadlineHubDiv(candidate, message);
-    // hhDiv.insertBefore(form, hhDiv.firstChild);
+    hhDiv.insertBefore(form, hhDiv.firstChild);
 
     let referenceElement = document.querySelector(candidate);
     if (!referenceElement) {
@@ -138,7 +155,7 @@ chrome.runtime.onMessage.addListener(function gotMessage(message, sender, sendRe
         hhDiv.innerHTML += table.outerHTML;
         hhDiv.appendChild(table);
     } else {
-        // hhDiv.innerHTML += "No media!!";
+        hhDiv.innerHTML += "No media!!";
     }
 
     articleMsg = document.createElement('div');
@@ -150,7 +167,7 @@ chrome.runtime.onMessage.addListener(function gotMessage(message, sender, sendRe
         articleMsg.innerHTML = "Article not in database, wanna add it? <button>Add</button>";
     }
 
-    const showIframe = message.article;
+    const showIframe = true || message.article;
     if (showIframe) {
         var iframeDiv = document.createElement('div');
         iframeDiv.className = 'iframe-container';
@@ -224,7 +241,7 @@ chrome.runtime.onMessage.addListener(function gotMessage(message, sender, sendRe
 
     // console.log('iframe.contentWindow =', iframe.contentWindow);
 
-});
+}
 
 function GFG_Fun(message, iframe) {
 

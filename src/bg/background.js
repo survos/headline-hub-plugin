@@ -142,6 +142,7 @@ function(message, sender, sendResponse) {
                         // };
                         data.iframe_url = base + data.iframe_path;
                         data.host = sender.tab.hostname;
+                        data.code = 'check_url_received';
 
                         mediaData = data;
 
