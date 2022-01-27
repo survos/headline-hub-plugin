@@ -1,27 +1,27 @@
 // inject our iframe into the HTML, and highlight the title, date, etc. based on the media queries.
+console.log('Setting up listener inject.js');
 
-chrome.extension.sendMessage({
+
+chrome.runtime.sendMessage({
         'code': 'welcome',
         'type': 'tab loaded, sending a kickoff message from inject.'
     },
-    function (response) {
+     (response) => {
         var readyStateCheckInterval = setInterval( () => {
             if (document.readyState === "complete") {
                 clearInterval(readyStateCheckInterval);
 
                 // ----------------------------------------------------------
                 // This part of the script triggers when page is done loading
-                console.log("This message was sent from scripts/inject.js");
-                console.log(response);
+                console.log("This message was sent from scripts/inject.js, the tab load is now complete");
+                // console.log(response);
                 // ----------------------------------------------------------
 
             }
         }, 10);
     });
 
-console.log('Setting up listener inject.js');
-
-chrome.runtime.onMessage.addListener(function gotMessage(message, sender, sendResponse) {
+chrome.runtime.onMessage.addListener( (message, sender, sendResponse) => {
     console.log(message, sender, sendResponse);
 
     console.assert(message.code, "Missing code in message.");
@@ -86,7 +86,7 @@ function updateContent(message)
 
     // https://stackoverflow.com/questions/7524585/how-do-i-get-the-information-from-a-meta-tag-with-javascript
     // get the media selectors and apply them to find the right one for title, author, date
-    // for meta elements, we should add a sidebar, maybe with a dropdown.
+    // for meta elements, we should add a sidebar, maybe with a dropdown. Or expanding the elements in the page itself.
 
     let candidate = findFormAnchor(); // the name of the element, like h1, that marks the start of the relevant content.  Our form will go above this.
 
@@ -118,7 +118,7 @@ function updateContent(message)
     }
 
     let m = message.media;
-    if (m) {
+    if (m && false) {
         let domList = document.createElement('ol');
         var table = document.createElement('table');
         for (const [key, value] of Object.entries(m)) {
@@ -349,7 +349,7 @@ function removeClutter(message) {
 function findFormAnchor() {
     // loop through h1, header, etc, to find a good element to anchor to
     let candidate = ['h1', 'h2', 'article', '.main', '#main', 'body'].find((selector) => {
-        return document.querySelector(selector) !== null;
+        return document.querySelector(selector);
     });
     console.log(candidate);
     return candidate;
@@ -387,6 +387,7 @@ function createIFrame(message) {
 function createHeadlineHubDiv(candidate, message) {
     // get the insert element selector, or a list?
     const hhDiv = document.createElement('div');
+    hhDiv.innerHTML = '';
 
     hhDiv.innerHTML += `<h1>...Loading before ...${candidate} </h1>`;
     // hhDiv.innerHTML += message.suggestion_form;

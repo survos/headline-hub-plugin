@@ -24,8 +24,12 @@
 
 let mediaData = {};
 
-chrome.browserAction.onClicked.addListener(function (tab) {
+chrome.browserAction.setBadgeText({"text": 'bg'} );
+
+chrome.browserAction.onClicked.addListener( (tab) => {
     // Send a message to the active tab
+    console.log('tab clicked?', tab);
+    chrome.browserAction.setBadgeText({ details: {"text": tab.id} });
     chrome.tabs.query({active: true, currentWindow: true}, function (tabs) {
         var activeTab = tabs[0];
         // chrome.tabs.sendMessage(activeTab.id, {"code": "clicked_browser_action"});
@@ -57,10 +61,10 @@ chrome.identity.getProfileUserInfo( (userInfo) => {
 // );
 
 chrome.runtime.onMessage.addListener(
-function(message, sender, sendResponse) {
+(message, sender, sendResponse) => {
     console.log(sender.tab ?
-        "from a content script:" + sender.tab.url :
-        "from the extension");
+        "message from a content script (tab):" + sender.tab.url :
+        "message from the extension", message);
 
     if (sender.tab) {
         console.log(`background received a message from tab ${sender.tab.id} (${sender.tab.url} is now loaded.`);
@@ -75,6 +79,7 @@ function(message, sender, sendResponse) {
                 });
                 break;
             default:
+                console.error('code not handled: ' + message.code);
                 sendResponse({'code': 'invalid_code'})
         }
     }
@@ -141,22 +146,19 @@ function(message, sender, sendResponse) {
                         //     html: data.html
                         // };
                         data.iframe_url = base + data.iframe_path;
-                        data.host = sender.tab.hostname;
+                        data.host = new URL(newsUrl).host;
                         data.code = 'check_url_received';
 
                         mediaData = data;
 
-                        console.log('sending a runtime message to the popup.');
-                        // chrome.runtime.sendMessage({
-                        //     msg: "something_completed",
-                        //     data: {
-                        //         subject: "Loading",
-                        //         content: "Just completed!"
-                        //     }
-                        // });
+                        console.log('sending a check_url_received message', data, sendResponse);
+                        chrome.runtime.sendMessage(data);
 
                         // change the icon color if the media is / isn't in the database.
-                        chrome.tabs.sendMessage(sender.tab.id, data);
+                        // chrome.tabs.sendMessage(sender.tab.id, data, (response) => {
+                        //     sendResponse(response);
+                        // });
+                        sendResponse(data);
                         // chrome.pageAction.show(sender.tab.id);
                         // return;
 
@@ -168,7 +170,8 @@ function(message, sender, sendResponse) {
             .catch(function (err) {
                 console.log('Fetch Error :-S', err);
             });
-        sendResponse(mediaData);
+        return true;
+        // sendResponse(mediaData);
     }
 
 
