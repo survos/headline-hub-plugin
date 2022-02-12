@@ -49,8 +49,8 @@ chrome.runtime.onMessage.addListener(
             document.getElementById('media-marking').innerHTML = media.marking;
         } else {
             document.getElementById('media-marking').innerHTML = 'Hola?';
-            document.getElementById('media-name').textContent = 'no media?';
-            document.getElementById('host').textContent = 'not in database';
+            document.getElementById('media-name').textContent = '';
+            document.getElementById('host').textContent =  message.host;
 
         }
 
