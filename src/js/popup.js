@@ -53,6 +53,12 @@ chrome.runtime.onMessage.addListener(
         // sendResponse('inside of popup.js listener');
         // let tab = sender.tab;
         console.log(message);
+
+        document.getElementById('iframe_div').src = message.iframe_url;
+        document.getElementById('iframe_debug').href = message.iframe_url;
+        console.log('setting iframe_div to ' + message.iframe_url);
+
+
         if (message.media) {
             chrome.action.setBadgeText({ "text": "X" });
 

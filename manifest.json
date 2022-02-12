@@ -35,6 +35,7 @@
 
   "content_scripts": [
     {
+      "all_frames": true,
       "matches": [ "<all_urls>"],
       "css": [
         "src/inject/inject.css"

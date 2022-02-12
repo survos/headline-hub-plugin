@@ -1,12 +1,15 @@
 <!DOCTYPE html>
 <html>
 <head>
+    <link rel="stylesheet" type="text/css" href="css/popup.css">
 </head>
 <body>
 <p id="demo">=a</p>
 
 <button type="button" id="do-count">Count</button>
 
+<form>
+    <input name="host" value="">
 <div id="mainPopup">
     <h1><span id="media-marking">Hi</span>
         <span id="host">HH</span>!
@@ -15,10 +18,22 @@
 
 <div id="media-name">The domain is ...</div>
 
-<button id="save-button">Save</button>
+    <a id="iframe_debug" target="_blank" href="#">Open in new window</a>
+    <iframe id="iframe_div" width="80%" height="50%" src="https://tobacco.org/about">
+        IFrame here.
+    </iframe>
 
-<button type="button" id="do-count">Count</button>
+<button id="hide-button">Not A  News Site</button>
+<button id="add-button">Add/Edit</button>
+
+</form>
 
 <script src="js/popup.js"></script>
 </body>
 </html>
+<script>
+    import Index from "./options_custom/index.html";
+    export default {
+        components: {Index}
+    }
+</script>

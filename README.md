@@ -1,5 +1,26 @@
 # HH Ext
 
+## Popup Types
+
+if no media:
+* Add Media
+* Add Headlines Only (no original news, just links)
+* Exclude This Site (adds with marking: not_news)
+
+If media but no article or site
+
+* Add Article (opens new tab)
+* Add Site (now HeadlinePage, with Media parent, @todo)
+* Mark not news
+
+if site:
+* Show selector.  content script marks headlines.
+
+if article:
+* popup shows link to "Edit Article" and metatags
+* content script highlights title, date, body, etc.
+* Add link to "Show Original", to show without markup
+
 ## Process
 
 * background.js: sets up listeners

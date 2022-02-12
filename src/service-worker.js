@@ -170,8 +170,10 @@ chrome.runtime.onMessage.addListener(
 
                         let badgeColor = 'pink';
                         let badgeText = '*';
+                        let text = '--';
                         if (data.media) {
                             let media = data.media;
+                            text = media.marking;
                             chrome.action.setTitle({title: data.host + " IS in the database: " + media.marking, tabId: tabId});
                             switch (media.marking) {
                                 case "active":
@@ -186,16 +188,15 @@ chrome.runtime.onMessage.addListener(
                             chrome.action.setTitle({title: data.host + " is NOT in the database", tabId: tabId});
                             chrome.action.setBadgeBackgroundColor({color: "yellow"});
                             chrome.action.setBadgeText({ "text": '-', "tabId": tabId });
+                            chrome.action.setBadgeText({ "text": '', "tabId": tabId });
                         }
 
                         const canvas = new OffscreenCanvas(16, 16);
                         const context = canvas.getContext('2d');
-                        const text = 'AC';
                         // context.font = '12pt sans-serif';
                         context.textAlign = 'top';
                         // context.fillStyle = `hsl(${delta / 40}, 80%, 50%)`;
 
-                        // context.fillText('AB');
                         context.clearRect(0, 0, 16, 16);
                         context.fillStyle = 'lightGray'; // '#00FF00';  // Green
                         context.fillRect(0, 0, 16, 16);
