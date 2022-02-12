@@ -1,14 +1,14 @@
 {
   "name": "ext: Headline Hub Checker",
   "version": "0.0.3",
-  "manifest_version": 2,
+  "manifest_version": 3,
   "description": "Tools for adding articles to headlinehub.org",
   "homepage_url": "http://headlinehub.org",
   "icons": {
     "16": "icons/favicon-16x16.png",
     "32": "icons/favicon-32x32.png"
   },
-  "browser_action": {
+  "action": {
     "default_title": "HeadlineHub Check",
     "default_icon": "icons/favicon-32x32.png",
     "default_popup": "src/popup.html"
@@ -16,10 +16,7 @@
 
   "default_locale": "en",
   "background": {
-    "scripts": [
-      "src/bg/background.js"
-    ],
-    "persistent": true
+    "service_worker": "src/service-worker.js"
   },
   "options_page": "src/options.html",
   "permissions": [
@@ -31,6 +28,11 @@
     "tabs",
     "background"
   ],
+  "host_permissions": [
+    "http://www.blogger.com/",
+    "*://*/*"
+  ],
+
   "content_scripts": [
     {
       "matches": [ "<all_urls>"],

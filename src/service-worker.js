@@ -20,16 +20,14 @@
 //     }
 // });
 
-// chrome.browserAction.onClicked.addListener(function(tab) { alert('icon clicked')});
+// chrome.action.onClicked.addListener(function(tab) { alert('icon clicked')});
 
-let mediaData = {};
+chrome.action.setBadgeText({"text": 'bg'} );
 
-chrome.browserAction.setBadgeText({"text": 'bg'} );
-
-chrome.browserAction.onClicked.addListener( (tab) => {
+chrome.action.onClicked.addListener( (tab) => {
     // Send a message to the active tab
     console.log('tab clicked?', tab);
-    chrome.browserAction.setBadgeText({ details: {"text": tab.id} });
+    chrome.action.setBadgeText({ details: {"text": tab.id} });
     chrome.tabs.query({active: true, currentWindow: true}, function (tabs) {
         var activeTab = tabs[0];
         // chrome.tabs.sendMessage(activeTab.id, {"code": "clicked_browser_action"});
@@ -148,8 +146,6 @@ chrome.runtime.onMessage.addListener(
                         data.iframe_url = base + data.iframe_path;
                         data.host = new URL(newsUrl).host;
                         data.code = 'check_url_received';
-
-                        mediaData = data;
 
                         console.log('sending a check_url_received message', data, sendResponse);
                         chrome.runtime.sendMessage(data);
