@@ -2,12 +2,17 @@
 console.log('Loading popup.js');
 document.getElementById('media-name').textContent = 'somedomain.com';
 
+var currentTab;
 
 chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-    var currentTab = tabs[0]; // there will be only one in this array
+    currentTab = tabs[0]; // there will be only one in this array
+    const host = new URL(currentTab.url).host;
     document.getElementById('media-name').textContent = currentTab.url;
-    document.getElementById('host').textContent = new URL(currentTab.url).host;
-    document.getElementById('media-marking').innerHTML = 'Hey';
+    document.getElementById('host').textContent = host;
+    document.getElementById('media-marking').innerHTML = 'marking';
+    chrome.action.setTitle({title: host + " is beging checked", tabId: currentTab.id});
+    chrome.action.setBadgeText({text: "*"});
+
 
     chrome.runtime.sendMessage({
         code: "check_media",
@@ -16,39 +21,51 @@ chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
     }, (response) => {
         console.log('check_media response', response);
         return true;
-
     });
 
 });
 
 var a=0;
-document.getElementById('do-count').onclick = () => { a+=2; document.getElementById('demo').textContent = a.toString() };
+document.getElementById('do-count').onclick = () => {
+    a+=2; document.getElementById('demo').textContent = a.toString();
+    chrome.action.setBadgeText({"text": a.toString()});
+};
 
-function check_media() {
-    console.log('checking to see if this media exists.');
+// function check_media() {
+//     console.log('checking to see if this media exists.');
+//
+//     chrome.storage.local.get(['address'], function(value) {
+//         console.log('calculating  value');
+//         // gclient_geocode(value.address);
+//     });
+// }
 
-    chrome.storage.local.get(['address'], function(value) {
-        console.log('calculating  value');
-        // gclient_geocode(value.address);
-    });
-}
-
-// don't listen, instead initiate
+// don't listen, instead initiate>
 chrome.runtime.onMessage.addListener(
     (message, sender, sendResponse) => {
         console.log(`popup.js extension received a message.`);
+        chrome.action.setBadgeText({"text": "??"});
+        let color = "green";
+        chrome.action.setBadgeBackgroundColor({color: color});
         console.log(message, sender, sendResponse);
         // this document is the popup.html doc.
         document.getElementById('media-name').textContent = 'textContent in popup.js';
         // sendResponse('inside of popup.js listener');
-
+        // let tab = sender.tab;
+        console.log(message);
         if (message.media) {
+            chrome.action.setBadgeText({ "text": "X" });
+
             const media = message.media;
+            console.log(media);
+            chrome.action.setBadgeText({ "text": media.marking, "tabId": currentTab.id} );
+            chrome.action.setTitle({title: message.host + " is in the database (popup.js)", tabId: currentTab.id});
             document.getElementById('media-name').textContent = 'name ' + media.name;
-            document.getElementById('host').textContent = media.domain;
+            document.getElementById('host').textContent = media.host;
             document.getElementById('media-marking').innerHTML = media.marking;
         } else {
-            document.getElementById('media-marking').innerHTML = 'Hola?';
+            // use message, not media.
+            document.getElementById('media-marking').innerHTML = 'Add ' + message.host;
             document.getElementById('media-name').textContent = '';
             document.getElementById('host').textContent =  message.host;
 
@@ -57,15 +74,4 @@ chrome.runtime.onMessage.addListener(
         return true;
     });
 
-// chrome.runtime.onMessage.addListener(
-//     function(request, sender, sendResponse) {
-//         document.getElementById('media-name').textContent = JSON.stringify(request);
-//         if (request.msg === "something_completed") {
-//             //  To do something
-//             console.log(request.data.subject)
-//             console.log(request.data.content)
-//         }
-//     }
-// );
-//
 // window.onload = check_media;

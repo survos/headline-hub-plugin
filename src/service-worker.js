@@ -22,12 +22,42 @@
 
 // chrome.action.onClicked.addListener(function(tab) { alert('icon clicked')});
 
-chrome.action.setBadgeText({"text": 'bg'} );
+chrome.runtime.onInstalled.addListener((reason) => {
+    if (reason === chrome.runtime.OnInstalledReason.INSTALL) {
+        chrome.tabs.create({
+            url: 'onboarding.html'
+        });
+    }
+});
 
+// only on startup?
+// chrome.action.setBadgeText({"text": '-'} );
+async function getCurrentTab() {
+    let queryOptions = { active: true, currentWindow: true };
+    let [tab] = await chrome.tabs.query(queryOptions);
+    return tab;
+}
+
+// chrome.tabs.onActivated.addListener(activeInfo => move(activeInfo));
+
+async function move(activeInfo) {
+    try {
+        console.log('check media for ' + URL(activeInfo.url).host)
+
+        await chrome.tabs.move(activeInfo.tabId, {index: 0});
+        console.log('Success.');
+    } catch (error) {
+        if (error == 'Error: Tabs cannot be edited right now (user may be dragging a tab).') {
+            setTimeout(() => move(activeInfo), 50);
+        }
+    }
+}
+
+// was onClicked.
 chrome.action.onClicked.addListener( (tab) => {
     // Send a message to the active tab
     console.log('tab clicked?', tab);
-    chrome.action.setBadgeText({ details: {"text": tab.id} });
+
     chrome.tabs.query({active: true, currentWindow: true}, function (tabs) {
         var activeTab = tabs[0];
         // chrome.tabs.sendMessage(activeTab.id, {"code": "clicked_browser_action"});
@@ -48,16 +78,6 @@ chrome.identity.getProfileUserInfo( (userInfo) => {
        They will be empty if user is not signed in in Chrome */
 });
 
-// chrome.runtime.onMessage.addListener(
-//     function(message, sender, sendResponse) {
-//         console.assert(message.code, "Missing code in message");
-//         if (message.code  === "check_media") {
-//             //  To do something
-//             console.log(message, sender);
-//         }
-//     }
-// );
-
 chrome.runtime.onMessage.addListener(
 (message, sender, sendResponse) => {
     console.log(sender.tab ?
@@ -66,13 +86,19 @@ chrome.runtime.onMessage.addListener(
 
     if (sender.tab) {
         console.log(`background received a message from tab ${sender.tab.id} (${sender.tab.url} is now loaded.`);
-        getMediaData(sender.tab.url, sender, (response) => sendResponse(response));
+        getMediaData(sender.tab.url, sender.tab.id, (response) => {
+            // since we're in a tab, we can update here.
+            sendResponse(response);
+        });
     } else {
+
+        console.log('background received a message from the extension (not a tab)', message);
         console.assert(message.code, "Missing code in message");
         switch (message.code) {
             case 'check_media':
                 // this is the cached media
-                getMediaData(message.url, sender, (mediaData) => {
+
+                getMediaData(message.url, getCurrentTab().id, (mediaData) => {
                     sendResponse(mediaData);
                 });
                 break;
@@ -84,7 +110,7 @@ chrome.runtime.onMessage.addListener(
 });
 
 //example of using a message handler from the inject scripts
-    function getMediaData(newsUrl, sender, sendResponse) {
+    function getMediaData(newsUrl, tabId, sendResponse) {
 
         // const base = 'https://staging-5em2ouy-6qpek36k2ejf6.eu.s5y.io';
         const base = 'https://hub.wip';
@@ -106,13 +132,6 @@ chrome.runtime.onMessage.addListener(
                 credentials: "include"
             }
         )
-
-        // const myRequest = new Request(url, {
-        //     method: 'GET',
-        //     headers: myHeaders,
-        //     mode: 'cors',
-        //     cache: 'default',
-        // });
 
         console.log("Fetching " + myRequest.url, myHeaders);
 
@@ -148,7 +167,49 @@ chrome.runtime.onMessage.addListener(
                         data.code = 'check_url_received';
 
                         console.log('sending a check_url_received message', data, sendResponse);
-                        chrome.runtime.sendMessage(data);
+
+                        let badgeColor = 'pink';
+                        let badgeText = '*';
+                        if (data.media) {
+                            let media = data.media;
+                            chrome.action.setTitle({title: data.host + " IS in the database: " + media.marking, tabId: tabId});
+                            switch (media.marking) {
+                                case "active":
+                                    badgeColor = "green";
+                                    ;
+
+                            }
+                            chrome.action.setBadgeBackgroundColor({color: badgeColor, tabId: tabId});
+                            chrome.action.setBadgeText({ "text": badgeText, "tabId": tabId });
+
+                        } else {
+                            chrome.action.setTitle({title: data.host + " is NOT in the database", tabId: tabId});
+                            chrome.action.setBadgeBackgroundColor({color: "yellow"});
+                            chrome.action.setBadgeText({ "text": '-', "tabId": tabId });
+                        }
+
+                        const canvas = new OffscreenCanvas(16, 16);
+                        const context = canvas.getContext('2d');
+                        const text = 'AC';
+                        // context.font = '12pt sans-serif';
+                        context.textAlign = 'top';
+                        // context.fillStyle = `hsl(${delta / 40}, 80%, 50%)`;
+
+                        // context.fillText('AB');
+                        context.clearRect(0, 0, 16, 16);
+                        context.fillStyle = 'lightGray'; // '#00FF00';  // Green
+                        context.fillRect(0, 0, 16, 16);
+
+
+                        context.fillStyle = "black"; //<======= and here
+                        context.fillText(text, 0, 8);
+                        const imageData = context.getImageData(0, 0, 16, 16);
+
+                        chrome.action.setIcon({tabId: tabId, imageData: imageData}, () => { /* ... */ });
+
+
+                        chrome.runtime.sendMessage(data); // only if this is coming from the popup.
+
 
                         // change the icon color if the media is / isn't in the database.
                         // chrome.tabs.sendMessage(sender.tab.id, data, (response) => {

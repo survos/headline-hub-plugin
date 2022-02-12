@@ -1,8 +1,8 @@
 {
-  "name": "new-tab-page",
+  "name": "headline-hub-extension",
   "version": "1.0.0",
-  "description": "A Vue.js web extension",
-  "author": "James Hibbard <1940994+jameshibbard@users.noreply.github.com>",
+  "description": "Headline Hub administrator utility",
+  "author": "Tac Tacelosky <tacman@gmail.com>",
   "license": "MIT",
   "scripts": {
     "build": "cross-env NODE_ENV=production webpack --hide-modules",
@@ -37,5 +37,8 @@
     "webpack-chrome-extension-reloader": "^0.8.3",
     "webpack-cli": "^3.3.12",
     "webpack-shell-plugin": "^0.5.0"
-  }
+  },
+  "main": "index.js",
+  "repository": "git@github.com:survos/headline-hub-plugin.git",
+  "private": false
 }
