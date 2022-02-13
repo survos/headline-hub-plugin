@@ -1,6 +1,5 @@
 
 console.log('Loading popup.js');
-require('~bootstrap');
 
 document.getElementById('media-name').textContent = 'somedomain.com';
 
