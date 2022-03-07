@@ -11,14 +11,17 @@
   "action": {
     "default_title": "HeadlineHub Check",
     "default_icon": "icons/favicon-32x32.png",
-    "default_popup": "src/popup.html"
+    "default_popup": "/popup/popup.html"
   },
 
   "default_locale": "en",
   "background": {
-    "service_worker": "src/service-worker.js"
+    "service_worker": "service-worker.js"
   },
-  "options_page": "src/options.html",
+  "options_ui": {
+    "page": "options.html",
+    "open_in_tab": false
+  },
   "permissions": [
     "storage",
     "identity",
@@ -38,13 +41,13 @@
       "all_frames": true,
       "matches": [ "<all_urls>"],
       "css": [
-        "src/inject/inject.css"
+        "inject/inject.css"
       ]
     },
     {
       "matches": [ "<all_urls>"],
       "js": [
-        "src/inject/inject.js"
+        "inject/inject.js"
       ],
       "exclude_matches": [
         "*://*.google.com/*",
@@ -53,6 +56,8 @@
         "*://*.amazon.com/*",
         "*://*.facebook.com/*",
         "*://*.youtube.com/*",
+        "*://*.wip/*",
+        "*://jardinoaxaca.herokuapp.com/",
         "*://*.stackoverflow.com/*",
         "*://*.stackexchange.com/*",
         "*://*.symfony.com/*",

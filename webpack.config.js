@@ -20,7 +20,7 @@ const config = {
     filename: '[name].js',
   },
   resolve: {
-    extensions: ['.js', '.vue'],
+    extensions: ['.js', '.vue', '.css', '.scss'],
   },
   module: {
     rules: [
@@ -61,7 +61,8 @@ const config = {
     }),
     new CopyWebpackPlugin([
       { from: '../icons', to: 'icons', ignore: ['icon.xcf'] },
-      { from: 'popup.html', to: 'popup/popup.html', transform: transformHtml },
+      { from: 'popup/popup.html', to: 'popup/popup.html', transform: transformHtml },
+      { from: 'popup/popup.css', to: 'popup/popup.css'},
       // { from: 'tab/tab.html', to: 'tab/tab.html', transform: transformHtml },
       {
         from: '../manifest.json',

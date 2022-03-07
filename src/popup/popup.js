@@ -2,6 +2,8 @@
 console.log('Loading popup.js');
 
 document.getElementById('media-name').textContent = 'somedomain.com';
+document.getElementById('host').textContent = 'now in popup.js';
+
 
 var currentTab;
 
@@ -26,11 +28,11 @@ chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
 
 });
 
-var a=0;
-document.getElementById('do-count').onclick = () => {
-    a+=2; document.getElementById('demo').textContent = a.toString();
-    chrome.action.setBadgeText({"text": a.toString()});
-};
+// var a=0;
+// document.getElementById('do-count').onclick = () => {
+//     a+=2; document.getElementById('demo').textContent = a.toString();
+//     chrome.action.setBadgeText({"text": a.toString(), tabId: currentTab.id});
+// };
 
 // function check_media() {
 //     console.log('checking to see if this media exists.');

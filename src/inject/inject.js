@@ -1,27 +1,9 @@
 // inject our iframe into the HTML, and highlight the title, date, etc. based on the media queries.
 console.log('Setting up listener inject.js');
 
-
-chrome.runtime.sendMessage({
-        'code': 'welcome',
-        'type': 'tab loaded, sending a kickoff message from inject.'
-    },
-     (response) => {
-        var readyStateCheckInterval = setInterval( () => {
-            if (document.readyState === "complete") {
-                clearInterval(readyStateCheckInterval);
-
-                // ----------------------------------------------------------
-                // This part of the script triggers when page is done loading
-                console.log("This message was sent from scripts/inject.js, the tab load is now complete");
-                // console.log(response);
-                // ----------------------------------------------------------
-
-            }
-        }, 10);
-    });
-
-chrome.runtime.onMessage.addListener( (message, sender, sendResponse) => {
+console.log(`inject.js  is listening for check_url_received.`);
+chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+    console.log(`inject.js  received a message.`, message);
     console.log(message, sender, sendResponse);
 
     console.assert(message.code, "Missing code in message.");
@@ -38,8 +20,47 @@ chrome.runtime.onMessage.addListener( (message, sender, sendResponse) => {
     }
 });
 
-function updateContent(message)
-{
+chrome.runtime.sendMessage(
+    {
+        'code': 'welcome',
+        'type': 'tab loaded, sending a kickoff message from inject.js'
+    },
+    (response) =>
+    {
+        var readyStateCheckInterval = setInterval(() => {
+            if (document.readyState === "complete") {
+                clearInterval(readyStateCheckInterval);
+
+                // ----------------------------------------------------------
+                // This part of the script triggers when page is done loading
+                console.log("This message was sent from scripts/inject.js, the tab load is now complete");
+                console.log();
+                // console.log(response);
+                // ----------------------------------------------------------
+
+            }
+
+        console.log("sending a check_media message " + location.href);
+        chrome.runtime.sendMessage({
+            code: "check_media",
+            tabId: 0,
+            url: location.href,
+            html: document.documentElement.innerHTML
+        },
+        (message) => {
+            console.log('check_media response', message);
+
+            // document.getElementById('iframe_div').src = message.iframe_url;
+            // document.getElementById('iframe_debug').href = message.iframe_url;
+            // console.log('setting iframe_div to ' + message.iframe_url);
+            //
+            // return true;
+        });
+        }, 10);
+
+    });
+
+function updateContent(message) {
 
     // @todo: refactor different types of messages, no_media, blocked_media, new_article, etc.
     let host = message.host;
@@ -106,10 +127,10 @@ function updateContent(message)
         hhDiv.style['border-style'] = 'solid';
         hhDiv.style['background'] = 'LightGreen';
 
-        referenceElement.style['border-style'] = 'solid';
+        referenceElement.style['border-style'] = 'dashed';
         referenceElement.style['background'] = 'orange';
         // referenceElement.parentNode.insertBefore(hhDiv, referenceElement);
-        referenceElement.innerHTML = candidate + ":" + referenceElement.innerHTML;
+        // referenceElement.innerHTML = candidate + ":" + referenceElement.innerHTML;
     }
 
     let styles = {
@@ -118,10 +139,11 @@ function updateContent(message)
     }
 
     let m = message.media;
-    if (m && false) {
+    if (false && m) {
         let domList = document.createElement('ol');
-        var table = document.createElement('table');
-        for (const [key, value] of Object.entries(m)) {
+        let table = document.createElement('table');
+        for (const [key, value] of Object.entries(m))
+        {
             if (value !== null) {
                 var tr = document.createElement('tr');
                 var th = document.createElement('th');
@@ -155,7 +177,7 @@ function updateContent(message)
         hhDiv.innerHTML += table.outerHTML;
         hhDiv.appendChild(table);
     } else {
-        hhDiv.innerHTML += "No media!!";
+        // hhDiv.innerHTML += "No media!!";
     }
 
     articleMsg = document.createElement('div');
@@ -167,7 +189,8 @@ function updateContent(message)
         articleMsg.innerHTML = "Article not in database, wanna add it? <button>Add</button>";
     }
 
-    const showIframe = true || message.article;
+    let showIframe = true || message.article;
+    showIframe = false;
     if (showIframe) {
         var iframeDiv = document.createElement('div');
         iframeDiv.className = 'iframe-container';

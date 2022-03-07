@@ -84,21 +84,23 @@ chrome.runtime.onMessage.addListener(
         "message from a content script (tab):" + sender.tab.url :
         "message from the extension", message);
 
+
+
     if (sender.tab) {
         console.log(`background received a message from tab ${sender.tab.id} (${sender.tab.url} is now loaded.`);
-        getMediaData(sender.tab.url, sender.tab.id, (response) => {
+        getMediaData(sender.tab.url, sender.tab.id, message.html, (response) => {
             // since we're in a tab, we can update here.
             sendResponse(response);
         });
     } else {
 
-        console.log('background received a message from the extension (not a tab)', message);
+        console.log('background received a message from the extension, e.g. inject.js (not a tab)', message);
         console.assert(message.code, "Missing code in message");
         switch (message.code) {
             case 'check_media':
                 // this is the cached media
 
-                getMediaData(message.url, getCurrentTab().id, (mediaData) => {
+                getMediaData(message.url, getCurrentTab().id, message.html, (mediaData) => {
                     sendResponse(mediaData);
                 });
                 break;
@@ -109,11 +111,28 @@ chrome.runtime.onMessage.addListener(
     }
 });
 
-//example of using a message handler from the inject scripts
-    function getMediaData(newsUrl, tabId, sendResponse) {
 
-        // const base = 'https://staging-5em2ouy-6qpek36k2ejf6.eu.s5y.io';
-        const base = 'https://hub.wip';
+// async function getOptions()
+// {
+//     let options = {x:'x'};
+//     await chrome.storage.sync.get({favoriteColor: 'cyan', hhUrl: 'someUrl'}, (result) => {
+//         base = result.hhUrl;
+//         options = result;
+//         console.log('Value currently is ' + result.hhUrl, result);
+//         return result;
+//     });
+//     return options;
+//
+// }
+//example of using a message handler from the inject scripts
+    async function getMediaData(newsUrl, tabId, html, sendResponse) {
+
+        // need sync, not async
+        // let options = await getOptions();
+        // console.log(options);
+
+        let base =  'https://hub.wip';
+        console.log(base, storageCache);
         const myHeaders =
             {
                 'x-plugin-auth-token': email,
@@ -123,22 +142,32 @@ chrome.runtime.onMessage.addListener(
         let url = base + '/plugin/check.json';
         // let url = 'https://127.0.0.1:8000/api2.0/tags/2.json';
 
+        let bodyData = {
+            html: html,
+            url: newsUrl,
+            email: email
+        }
+
         const myRequest = new Request(url + '?' + new URLSearchParams({
             url: newsUrl,
             email: email,
         }), {
+            method: 'POST',
                 // agent: new HttpsProxyAgent('http://127.0.0.1:7080'),
                 headers: myHeaders,
+            body: JSON.stringify(bodyData),
                 credentials: "include"
             }
         )
 
-        console.log("Fetching " + myRequest.url, myHeaders);
+        console.log("Fetching " + myRequest.url, myHeaders, bodyData);
 
 
         fetch(myRequest, {
             // agent: new HttpsProxyAgent('http://127.0.0.1:7080'),
             headers: myHeaders,
+            method: 'POST',
+            body: JSON.stringify(bodyData),
             credentials: "include"
         })
             .then(
@@ -153,6 +182,7 @@ chrome.runtime.onMessage.addListener(
 
                     // Examine the text in the response
                     response.json().then((data) => {
+                        data.tabId = tabId; // send the media message only to this tab.
                         console.log(data);
                         // let msg = {
                         //     originalUrl: sender.tab.url,
@@ -166,12 +196,11 @@ chrome.runtime.onMessage.addListener(
                         data.host = new URL(newsUrl).host;
                         data.code = 'check_url_received';
 
-                        console.log('sending a check_url_received message', data, sendResponse);
-
                         let badgeColor = 'pink';
                         let badgeText = '*';
                         let text = '--';
                         if (data.media) {
+                            // chrome.action.setPopup({popup: "/popup/popup.html", tabId: tabId});
                             let media = data.media;
                             text = media.marking;
                             chrome.action.setTitle({title: data.host + " IS in the database: " + media.marking, tabId: tabId});
@@ -185,9 +214,11 @@ chrome.runtime.onMessage.addListener(
                             chrome.action.setBadgeText({ "text": badgeText, "tabId": tabId });
 
                         } else {
+                            text = 'NO';
+                            // chrome.action.setPopup({popup: "/popup/no_media.html", tabId: tabId});
                             chrome.action.setTitle({title: data.host + " is NOT in the database", tabId: tabId});
-                            chrome.action.setBadgeBackgroundColor({color: "yellow"});
-                            chrome.action.setBadgeText({ "text": '-', "tabId": tabId });
+                            chrome.action.setBadgeBackgroundColor({color: "red"});
+                            chrome.action.setBadgeText({ "text": '!', "tabId": tabId });
                             chrome.action.setBadgeText({ "text": '', "tabId": tabId });
                         }
 
@@ -209,14 +240,20 @@ chrome.runtime.onMessage.addListener(
                         chrome.action.setIcon({tabId: tabId, imageData: imageData}, () => { /* ... */ });
 
 
-                        chrome.runtime.sendMessage(data); // only if this is coming from the popup.
+                        // now that the popup is set, send a message to the tab with the media and article data.
+                        console.log('sending a ' + data.code + ' message', data, sendResponse);
+                        if (tabId) {
+                            chrome.tabs.sendMessage(tabId, data);
+                        } else {
+                            chrome.runtime.sendMessage(data);
+                        }
 
 
                         // change the icon color if the media is / isn't in the database.
                         // chrome.tabs.sendMessage(sender.tab.id, data, (response) => {
                         //     sendResponse(response);
                         // });
-                        sendResponse(data);
+                        // sendResponse(data); // ?
                         // chrome.pageAction.show(sender.tab.id);
                         // return;
 
@@ -231,5 +268,42 @@ chrome.runtime.onMessage.addListener(
         return true;
         // sendResponse(mediaData);
     }
+
+// Where we will expose all the data we retrieve from storage.sync.
+const storageCache = {};
+// Asynchronously retrieve data from storage.sync, then cache it.
+const initStorageCache = getAllStorageSyncData().then(items => {
+    // Copy the data retrieved from storage into storageCache.
+    Object.assign(storageCache, items);
+    console.log("storage", items);
+});
+
+chrome.action.onClicked.addListener(async (tab) => {
+    try {
+        await initStorageCache;
+    } catch (e) {
+        // Handle error that occurred during storage initialization.
+    }
+    // Normal action handler logic.
+});
+
+// Reads all data out of storage.sync and exposes it via a promise.
+//
+// Note: Once the Storage API gains promise support, this function
+// can be greatly simplified.
+function getAllStorageSyncData() {
+    // Immediately return a promise and start asynchronous work
+    return new Promise((resolve, reject) => {
+        // Asynchronously fetch all data from storage.sync.
+        chrome.storage.sync.get(null, (items) => {
+            // Pass any observed errors down the promise chain.
+            if (chrome.runtime.lastError) {
+                return reject(chrome.runtime.lastError);
+            }
+            // Pass the data retrieved from storage down the promise chain.
+            resolve(items);
+        });
+    });
+}
 
 
