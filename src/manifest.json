@@ -1,6 +1,6 @@
 {
   "name": "ext: Headline Hub Checker",
-  "version": "0.0.3",
+  "version": "1.0.3",
   "manifest_version": 3,
   "description": "Tools for adding articles to headlinehub.org",
   "homepage_url": "http://headlinehub.org",
