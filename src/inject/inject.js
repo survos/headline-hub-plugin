@@ -139,7 +139,7 @@ function updateContent(message) {
     }
 
     let m = message.media;
-    if (false && m) {
+    if ( m) {
         let domList = document.createElement('ol');
         let table = document.createElement('table');
         for (const [key, value] of Object.entries(m))
@@ -190,7 +190,7 @@ function updateContent(message) {
     }
 
     let showIframe = true || message.article;
-    showIframe = false;
+    // showIframe = false;
     if (showIframe) {
         var iframeDiv = document.createElement('div');
         iframeDiv.className = 'iframe-container';
