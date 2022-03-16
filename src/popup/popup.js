@@ -40,10 +40,11 @@ chrome.tabs.query({active: true, currentWindow: true}, (tabs) => {
     // console.warn(currentTab);
 
     // send a message to inject to get the html
-    console.log("Sending a tab_content message from popup.js to tab " + currentTab.url);
+    console.log("Sending a request_tab_content message from popup.js to tab " + currentTab.url);
             console.log("Sending a check_media message from popup.js, tabID is " + currentTab.id + ' ' + currentTab.url);
             chrome.runtime.sendMessage({
                 code: "check_media",
+                caller: 'popup.js',
                 tabId: currentTab.id,
                 url: currentTab.url
             }, (response) => {
@@ -57,6 +58,7 @@ chrome.tabs.query({active: true, currentWindow: true}, (tabs) => {
                 let articleForm = document.querySelector('#add_article_form');
                 if (response.status === 'no_media') {
                     articleForm.style.display = 'none';
+                    document.getElementById('media_button').setAttribute('value', "Add Media");
                 } else {
                     let form = document.getElementById('add_article_form');
                     form.setAttribute('action', response.submitUrl);
@@ -64,6 +66,7 @@ chrome.tabs.query({active: true, currentWindow: true}, (tabs) => {
                     document.getElementById('mediaId').setAttribute('value', response.mediaId);
                     document.getElementById('html_response').innerHTML = response.html;
                     document.getElementById('mediaId').setAttribute('value', response.mediaId);
+                    document.getElementById('media_button').setAttribute('value', "Update Media");
 
                 }
 
@@ -73,7 +76,8 @@ chrome.tabs.query({active: true, currentWindow: true}, (tabs) => {
 
                 // if we have a media and it's active, get the tab content.
                 chrome.tabs.sendMessage(currentTab.id, {
-                        code: 'tab_content',
+                        code: 'request_tab_content',
+                        caller: 'popup.js'
                     },
                     (response) => {
                         console.warn(response);
@@ -129,16 +133,17 @@ document.querySelectorAll('.js-form').forEach(el => {
             fetch(event.target.action, {
                 method: 'POST',
                 body: new FormData(event.target) // event.target is the form
-            }).then((resp) => {
-                return resp.json(); // or resp.text() or whatever the server sends
-            }).then((body) => {
+            }).then( resp =>
+                { return resp.json(); } // or resp.text() or whatever the server sends
+            ).then( (body) => {
+                console.log(body)
                 if (body.url_to_open) {
                     chrome.tabs.create({url: body.url_to_open});
                 }
-                console.log(body)
                 el.innerHTML = body.status;
                 // TODO handle body
             }).catch((error) => {
+                console.error(error);
                 // TODO handle error
             });
         });

@@ -74,7 +74,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     if (sender.tab) {
         console.log(`message ${message.code} from TAB ${sender.tab.id} (${sender.tab.url} is now loaded.`, message);
         getMediaData(sender.tab.url, sender.tab.id, message.html, response => {
-            console.log('received MediaData, about to send back via sendResponse', response, sendResponse);
+            console.log('received MediaData, about to send back via sendResponse', response);
             sendResponse(response);
         });
         // .then(response => console.warn(response));
@@ -133,13 +133,10 @@ async function postData(url = '', data = {}) {
     return response.json(); // parses JSON response into native JavaScript objects
 }
 
-
-
-
 //example of using a message handler from the inject scripts
     async function getMediaData(newsUrl, tabId, html, sendResponse) {
         // first, send the message to a tab to get the content and host.
-        chrome.tabs.sendMessage(tabId, {code: 'tab_content'}, async (response) => {
+        chrome.tabs.sendMessage(tabId, {code: 'request_tab_content', caller: 'getMediaData (in service-worker)'}, async (response) => {
             // now fetch the media from the server.
             let base = storageCache['hhUrl'];
             let email = this.email;
@@ -153,23 +150,28 @@ async function postData(url = '', data = {}) {
 
 
             let url = base + '/plugin/check.json';
-            const data = new FormData();
-            data.append('webpage_html', html);
-            data.append('url', newsUrl);
-            data.append('email', email);
+            const postData = new FormData();
+            postData.append('url', newsUrl);
+
+            // postData.append('webpage_html', html);
+            // postData.append('email', email);
 
             let check_media_response = await fetch(url, {
-                body: data,
+                body: postData,
                 headers: myHeaders,
                 // headers: myHeaders,
                 method: 'POST',
                 credentials: "include"
-            });
-
-            return check_media_response.json().then(data => sendResponse(
-                {...data, ...response}
-            ));
-        })
+            }).then(httpResponse => httpResponse.json())
+                .then(data => {
+                console.log(data);
+                sendResponse(
+                    {...data, ...response}
+                );
+                }
+            );
+        });
+        return true;
     }
 
     function old()

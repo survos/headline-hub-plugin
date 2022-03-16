@@ -10,30 +10,31 @@ chrome.runtime.onMessage.addListener(
     }
 );
 
-console.log(`inject.js  is listening for check_url_received and tab_content.`);
+console.log(`inject.js  is listening for request_tab_content and check_url_received(?)`);
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     console.log(`inject.js  received a message.`, message);
     console.log(message, sender, sendResponse);
 
     console.assert(message.code, "Missing code in message.");
     switch (message.code) {
-        case 'tab_content':
-            message = {
-                'code': 'tab_content',
-                'webpage_html': document.querySelector('html').outerHTML
+        case 'request_tab_content':
+            responseMessage = {
+                code: 'received_tab_content',
+                webpage_html: document.querySelector('html').outerHTML
             };
-            console.log(message.webpage_html.length, message);
-            sendResponse(message);
+            console.assert(responseMessage.webpage_html.length, "missing html content in request_tab_content");
+            console.log(`sending back to ${message.caller}, html length: ` + responseMessage.webpage_html.length, responseMessage);
+            sendResponse(responseMessage);
             break;
-        case 'check_url_received':
-            updateContent(message);
-            // if there's no media, we should see if the plugin is active, if so, auto-add the iframe with the new media page.
-            console.log(message);
-            sendResponse('ok');
-            break;
+        // case 'check_url_received':
+        //     updateContent(message);
+        //     // if there's no media, we should see if the plugin is active, if so, auto-add the iframe with the new media page.
+        //     console.log(message);
+        //     sendResponse('ok');
+        //     break;
         default:
-            console.log(message.code + ' is being handled elsewhere, perhaps in background?');
-            sendResponse(message.code);
+            console.error(message.code + ' is being handled elsewhere, perhaps in background?');
+            sendResponse({code: 'no_' + message.code});
     }
     return true;
 });
@@ -41,6 +42,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
  chrome.runtime.sendMessage(
     {
         'code': 'welcome',
+        'caller': 'inject.js',
         'type': 'tab loaded, sending a kickoff message from inject.js',
     },
     (response) => {
