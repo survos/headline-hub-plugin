@@ -7,33 +7,47 @@
 </head>
 <body>
 
-<div id="html_response">
-    HTML response from check.json
+<!--<button id="sendMessage" value="Send Message">GREEN</button>-->
+
+<div>
+    <b>
+    <span id="html_response">
+        HTML response from check.json
+    </span>
+    </b>
 </div>
 
-<a id="iframe_debug" target="_blank" href="#">Open in new window</a>
-<!--<iframe id="iframe_div" width="800" height="600">-->
+<!--<a id="iframe_debug" target="_blank" href="#">Open in new window</a>-->
+<!--<iframe id="iframe_div" width="800" height="200">-->
 <!--    IFrame here.-->
 <!--</iframe>-->
 
-<div data-controller="hello">
-    Hello controller is here.
-</div>
-
-<form id="add_article_form" method="POST" action="">
-    <input id="host" name="host" value="--">
-    <input id="url" name="url" value="--">
-    <input id="mediaId" name="mediaId" value="0">
+<form id="add_article_form" class="js-form" method="POST" action="">
+    <input id="url" name="url" value="--" size="128">
+    <input id="mediaId" type="hidden" name="mediaId" value="0">
     <input id="webpage_html" name="webpage_html" type="hidden" value="">
-    <input type="submit" id="add_button" value="Add To Articles">
+    <input type="submit" id="add_button" value="Add/Update Article">
 </form>
 
-<div id="mainPopup">
-    <h1><span id="media-marking">Hi</span>
-    </h1>
-</div>
+<form id="media_form" method="GET" class="js-form" action="">
+    <label>Media</label>
+    <input id="host" name="host" value="--" disabled>
+        <input type="radio" id="enable" name="marking" value="healthy"
+               checked>
+        <label for="enable">Enable</label>
+        <input type="radio" id="disable" name="marking" value="not_news"
+               >
+        <label for="disable">Disable</label>
 
-<div id="media-name">The domain is ...</div>
+    <input type="submit" id="activate_button" value="Add/Update Media database">
+</form>
+
+<!--<div id="mainPopup">-->
+<!--    <h1><span id="media-marking">Hi</span>-->
+<!--    </h1>-->
+<!--</div>-->
+
+<!--<div id="media-name">The domain is ...</div>-->
 
 
 <script type="module" src="popup.js"></script>

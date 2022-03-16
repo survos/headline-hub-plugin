@@ -86,7 +86,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
             case 'tab_content': // handled in inject.js
                 break;
             case 'check_media':
-                getMediaData(message.url, getCurrentTab().id, message.html, (mediaData) => {
+                getMediaData(message.url, message.tabId, message.html, (mediaData) => {
                     sendResponse(mediaData);
                 });
                 // .then(response => console.log(response));
@@ -137,46 +137,53 @@ async function postData(url = '', data = {}) {
 
 
 //example of using a message handler from the inject scripts
-    async function getMediaData(newsUrl, tabId, html, sendResponse)
-    {
-        let email = this.email;
-        let base = storageCache['hhUrl'];
-        console.log('in getMediaData, base is '  + base);
-        const myHeaders =
-            {
-                'x-plugin-auth-token': email,
-                // 'Content-Type': 'application/json',
-                // 'Content-Type': 'application/x-www-form-urlencoded',
-            };
+    async function getMediaData(newsUrl, tabId, html, sendResponse) {
+        // first, send the message to a tab to get the content and host.
+        chrome.tabs.sendMessage(tabId, {code: 'tab_content'}, async (response) => {
+            // now fetch the media from the server.
+            let base = storageCache['hhUrl'];
+            let email = this.email;
+            console.log('in getMediaData, base is '  + base);
+            const myHeaders =
+                {
+                    'x-plugin-auth-token': email,
+                    // 'Content-Type': 'application/json',
+                    // 'Content-Type': 'application/x-www-form-urlencoded',
+                };
 
-        let url = base + '/plugin/check.json';
 
-        // let bodyData = {
-        //     html: html,
-        //     url: newsUrl,
-        //     email: email
-        // }
+            let url = base + '/plugin/check.json';
+            const data = new FormData();
+            data.append('webpage_html', html);
+            data.append('url', newsUrl);
+            data.append('email', email);
 
-        const data = new FormData();
-        data.append('webpage_html', html);
-        data.append('url', newsUrl);
-        data.append('email', email);
-
-        let response = await fetch(url, {
-            body: data,
-            headers: myHeaders,
-            // headers: myHeaders,
-            method: 'POST',
-            credentials: "include"
-        });
-        return response.json().then(data => sendResponse(data));
-
-        postData(url, bodyData)
-            .then(data => {
-                console.log(data); // JSON data parsed by `data.json()` call
-                sendResponse(data);
+            let check_media_response = await fetch(url, {
+                body: data,
+                headers: myHeaders,
+                // headers: myHeaders,
+                method: 'POST',
+                credentials: "include"
             });
 
+            return check_media_response.json().then(data => sendResponse(
+                {...data, ...response}
+            ));
+        })
+    }
+
+    function old()
+    {
+
+
+
+
+        // postData(url, bodyData)
+        //     .then(data => {
+        //         console.log(data); // JSON data parsed by `data.json()` call
+        //         sendResponse(data);
+        //     });
+        //
 
 
 

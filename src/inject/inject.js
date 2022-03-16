@@ -1,5 +1,14 @@
 // inject our iframe into the HTML, and highlight the title, date, etc. based on the media queries.
 console.log('Setting up listener inject.js');
+// content.js
+chrome.runtime.onMessage.addListener(
+    function(request, sender, sendResponse) {
+        if (request.color === "green") {
+            document.body.style.backgroundColor = "green";
+            sendResponse({status: "done"});
+        }
+    }
+);
 
 console.log(`inject.js  is listening for check_url_received and tab_content.`);
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
@@ -13,7 +22,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
                 'code': 'tab_content',
                 'webpage_html': document.querySelector('html').outerHTML
             };
-            console.log(message);
+            console.log(message.webpage_html.length, message);
             sendResponse(message);
             break;
         case 'check_url_received':
