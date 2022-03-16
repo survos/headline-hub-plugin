@@ -1,13 +1,21 @@
 // inject our iframe into the HTML, and highlight the title, date, etc. based on the media queries.
 console.log('Setting up listener inject.js');
 
-console.log(`inject.js  is listening for check_url_received.`);
+console.log(`inject.js  is listening for check_url_received and tab_content.`);
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     console.log(`inject.js  received a message.`, message);
     console.log(message, sender, sendResponse);
 
     console.assert(message.code, "Missing code in message.");
     switch (message.code) {
+        case 'tab_content':
+            message = {
+                'code': 'tab_content',
+                'webpage_html': document.querySelector('html').outerHTML
+            };
+            console.log(message);
+            sendResponse(message);
+            break;
         case 'check_url_received':
             updateContent(message);
             // if there's no media, we should see if the plugin is active, if so, auto-add the iframe with the new media page.
@@ -18,17 +26,17 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
             console.log(message.code + ' is being handled elsewhere, perhaps in background?');
             sendResponse(message.code);
     }
+    return true;
 });
 
-chrome.runtime.sendMessage(
+ chrome.runtime.sendMessage(
     {
         'code': 'welcome',
         'type': 'tab loaded, sending a kickoff message from inject.js',
-        'head': document.querySelector('head').innerHTML,
-        'html': document.querySelector('html').outerHTML,
-        'body': document.querySelector('body').innerHTML
     },
     (response) => {
+        console.log('welcome message callback', response);
+
         var readyStateCheckInterval = setInterval(() => {
             if (document.readyState === "complete") {
                 clearInterval(readyStateCheckInterval);
@@ -37,7 +45,13 @@ chrome.runtime.sendMessage(
                 // This part of the script triggers when page is done loading
                 console.log("This message was sent from scripts/inject.js, the tab load is now complete");
                 console.log();
-                console.log(response);
+                chrome.runtime.sendMessage({code: 'tab_loaded',
+                    'head': document.querySelector('head').innerHTML,
+                    'html': document.querySelector('html').outerHTML,
+                    'body': document.querySelector('body').innerHTML
+
+                })
+                // console.log(response);
                 // ----------------------------------------------------------
 
             }
@@ -62,6 +76,7 @@ chrome.runtime.sendMessage(
         // }, 10);
 
     });
+
 
 function updateContent(message) {
 

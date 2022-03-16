@@ -53,7 +53,6 @@ async function getCurrentTab() {
 //     }
 // }
 
-// was onClicked.
 chrome.action.onClicked.addListener( (tab) => {
     // Send a message to the active tab
     console.log('tab clicked?', tab);
@@ -64,82 +63,85 @@ chrome.action.onClicked.addListener( (tab) => {
     });
 });
 
-// function checkMedia(url) {
-//     let urlData = new URL(url);
-//     console.log(urlData, urlData.host);
-// }
-//
-
 let email = '';
 chrome.identity.getProfileUserInfo( (userInfo) => {
-    console.log(userInfo);
     email = userInfo.email;
     /* Use userInfo.email, or better (for privacy) userInfo.id
        They will be empty if user is not signed in in Chrome */
 });
 
-
-
-chrome.runtime.onMessage.addListener(
-(message, sender, sendResponse) => {
-
-    options = this.getOptions();
-    console.log(options);
-
-    console.log(message, sender.tab ?
-        "message from a content script (tab):" + sender.tab.url :
-        "message from the extension", message);
-
-
-
+chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     if (sender.tab) {
-        console.log(`message from TAB ${sender.tab.id} (${sender.tab.url} is now loaded.`);
-        getMediaData(sender.tab.url, sender.tab.id, message.html, (response) => {
-            // since we're in a tab, we can update here.
+        console.log(`message ${message.code} from TAB ${sender.tab.id} (${sender.tab.url} is now loaded.`, message);
+        getMediaData(sender.tab.url, sender.tab.id, message.html, response => {
+            console.log('received MediaData, about to send back via sendResponse', response, sendResponse);
             sendResponse(response);
         });
-    } else {
+        // .then(response => console.warn(response));
 
+    } else {
         console.log('message from the EXTENSION, e.g. inject.js (not a tab)', message);
         console.assert(message.code, "Missing code in message");
         switch (message.code) {
+            case 'tab_content': // handled in inject.js
+                break;
             case 'check_media':
-                // this is the cached media
-
                 getMediaData(message.url, getCurrentTab().id, message.html, (mediaData) => {
                     sendResponse(mediaData);
                 });
+                // .then(response => console.log(response));
                 break;
             default:
                 console.error('code not handled: ' + message.code);
                 sendResponse({'code': 'invalid_code'})
         }
     }
+    return true; // to make sure the promise https://stackoverflow.com/questions/20077487/chrome-extension-message-passing-response-not-sent
 });
 
 
-async function getOptions()
-{
-    let options = {x:'x'};
-    await chrome.storage.sync.get({favoriteColor: 'cyan', hhUrl: 'someUrl'}, (result) => {
-        base = result.hhUrl;
-        options = result;
-        console.log('Value currently is ' + result.hhUrl, result);
-        return result;
+// let base = '';
+// let options = {};
+// async function getOptions()
+// {
+//     let options = {x:'x'};
+//     await chrome.storage.sync.get({favoriteColor: 'cyan', hhUrl: 'someUrl'}, (result) => {
+//         base = result.hhUrl;
+//         options = result;
+//         console.log('Value currently is ' + result.hhUrl, result, base);
+//         return result;
+//     });
+//     return options;
+// }
+
+// Example POST method implementation:
+async function postData(url = '', data = {}) {
+    // Default options are marked with *
+    const response = await fetch(url, {
+        method: 'POST', // *GET, POST, PUT, DELETE, etc.
+        mode: 'cors', // no-cors, *cors, same-origin
+        cache: 'no-cache', // *default, no-cache, reload, force-cache, only-if-cached
+        credentials: 'same-origin', // include, *same-origin, omit
+        headers: {
+            'Content-Type': 'application/json'
+            // 'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        redirect: 'follow', // manual, *follow, error
+        referrerPolicy: 'no-referrer', // no-referrer, *no-referrer-when-downgrade, origin, origin-when-cross-origin, same-origin, strict-origin, strict-origin-when-cross-origin, unsafe-url
+        body: JSON.stringify(data) // body data type must match "Content-Type" header
     });
-    return options;
+    return response.json(); // parses JSON response into native JavaScript objects
 }
 
+
+
+
 //example of using a message handler from the inject scripts
-    async function getMediaData(newsUrl, tabId, html, sendResponse) {
-
-        // need sync, not async
-        // let options = await getOptions();
-        // console.log(options);
+    async function getMediaData(newsUrl, tabId, html, sendResponse)
+    {
         let email = this.email;
-
-        let base =  'https://hub.wip';
-        console.log(base, storageCache);
+        let base = storageCache['hhUrl'];
+        console.log('in getMediaData, base is '  + base);
         const myHeaders =
             {
                 'x-plugin-auth-token': email,
@@ -148,18 +150,35 @@ async function getOptions()
             };
 
         let url = base + '/plugin/check.json';
-        // let url = 'https://127.0.0.1:8000/api2.0/tags/2.json';
 
-        let bodyData = {
-            html: html,
-            url: newsUrl,
-            email: email
-        }
+        // let bodyData = {
+        //     html: html,
+        //     url: newsUrl,
+        //     email: email
+        // }
 
         const data = new FormData();
-        data.append('html', html);
+        data.append('webpage_html', html);
         data.append('url', newsUrl);
         data.append('email', email);
+
+        let response = await fetch(url, {
+            body: data,
+            headers: myHeaders,
+            // headers: myHeaders,
+            method: 'POST',
+            credentials: "include"
+        });
+        return response.json().then(data => sendResponse(data));
+
+        postData(url, bodyData)
+            .then(data => {
+                console.log(data); // JSON data parsed by `data.json()` call
+                sendResponse(data);
+            });
+
+
+
 
         // removed + '?' + new URLSearchParams({url: newsUrl, email: email})
         const myRequest = new Request(url  ,
@@ -173,21 +192,11 @@ async function getOptions()
         console.warn("Fetching " + myRequest.url, myHeaders, bodyData);
 
 
-        let response = fetch(myRequest, {
-            body: data,
-            headers: myHeaders,
-
-            // // agent: new HttpsProxyAgent('http://127.0.0.1:7080'),
-            // headers: myHeaders,
-            // method: 'POST',
-            // body: JSON.stringify(bodyData),
-            credentials: "include"
-        })
+        response
             .then(
                  (response) => {
                     if (response.status !== 200) {
-                        console.log('Looks like there was a problem. Status Code: ' +
-                            response.status);
+                        console.log('Looks like there was a problem. Status Code: ' + response.status);
                         return;
                     }
 
@@ -195,7 +204,6 @@ async function getOptions()
                     // Examine the text in the response
                     response.json().then((data) => {
                         data.tabId = tabId; // send the media message only to this tab.
-                        console.log(data);
                         // let msg = {
                         //     originalUrl: sender.tab.url,
                         //     color: '#AE00B1',
@@ -253,13 +261,14 @@ async function getOptions()
 
 
                         // now that the popup is set, send a message to the tab with the media and article data.
-                        console.log('sending a ' + data.code + ' message', data, sendResponse);
-                        // sendResponse(data);
-                        if (tabId) {
-                            chrome.tabs.sendMessage(tabId, data);
-                        } else {
-                            chrome.runtime.sendMessage(data);
-                        }
+                        console.log('about to sendResponse from geMediaData', data);
+                        sendResponse(data);
+                        // console.log('sending a ' + data.code + ' message', data, sendResponse);
+                        // if (tabId) {
+                        //     chrome.tabs.sendMessage(tabId, data);
+                        // } else {
+                        //     chrome.runtime.sendMessage(data);
+                        // }
 
 
                         // change the icon color if the media is / isn't in the database.
@@ -278,7 +287,7 @@ async function getOptions()
             .catch(function (err) {
                 console.log('Fetch Error :-S', err);
             });
-        return true;
+        // return true;
         // sendResponse(mediaData);
     }
 

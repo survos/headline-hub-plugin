@@ -3,7 +3,6 @@
 <head>
     <meta charset="utf-8">
     <title>Headline Hub Plugin</title>
-    <link href="node_modules/bootstrap" rel="stylesheet">
     <link rel="stylesheet" type="text/css" href="popup.css">
 </head>
 <body>
@@ -22,9 +21,10 @@
 </div>
 
 <form id="add_article_form" method="POST" action="">
-    <input id="host" value="--">
-    <input id="url" value="--">
-    <input id="html" type="hidden" value="">
+    <input id="host" name="host" value="--">
+    <input id="url" name="url" value="--">
+    <input id="mediaId" name="mediaId" value="0">
+    <input id="webpage_html" name="webpage_html" type="hidden" value="">
     <input type="submit" id="add_button" value="Add To Articles">
 </form>
 
