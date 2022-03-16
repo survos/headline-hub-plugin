@@ -10,7 +10,7 @@ if no media:
 If media but no article or site
 
 * Add Article (opens new tab)
-* Add Site (now HeadlinePage, with Media parent, @todo)
+* Add Site (now HeadlinesPage, with Media parent, @todo)
 * Mark not news
 
 if site:

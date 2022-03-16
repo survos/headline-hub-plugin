@@ -12,6 +12,7 @@
     "watch:dev": "cross-env HMR=true npm run build:dev -- --watch"
   },
   "dependencies": {
+    "@hotwired/stimulus-webpack-helpers": "^1.0.1",
     "axios": "^0.21.1",
     "bootstrap": "^5.1.3",
     "vue": "^2.6.12",

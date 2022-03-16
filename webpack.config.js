@@ -12,7 +12,7 @@ const config = {
   context: __dirname + '/src',
   entry: {
     'background': './service-worker.js',
-    'popup/popup': './js/popup.js',
+    'popup/popup': './popup/popup.js',
     'tab/tab': './options_custom/js/classes/tab.js',
   },
   output: {
@@ -60,12 +60,12 @@ const config = {
       filename: '[name].css',
     }),
     new CopyWebpackPlugin([
-      { from: '../icons', to: 'icons', ignore: ['icon.xcf'] },
+      { from: './icons', to: 'icons', ignore: ['icon.xcf'] },
       { from: 'popup/popup.html', to: 'popup/popup.html', transform: transformHtml },
       { from: 'popup/popup.css', to: 'popup/popup.css'},
       // { from: 'tab/tab.html', to: 'tab/tab.html', transform: transformHtml },
       {
-        from: '../manifest.json',
+        from: './manifest.json',
         to: 'manifest.json',
         transform: (content) => {
           const jsonContent = JSON.parse(content);
