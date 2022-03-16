@@ -1,5 +1,6 @@
 
 console.log('Loading popup.js');
+// import "./stimulus";
 
 document.getElementById('media-name').textContent = 'somedomain.com';
 document.getElementById('host').textContent = 'now in popup.js';
@@ -15,6 +16,7 @@ chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
     document.getElementById('media-marking').innerHTML = 'marking';
     chrome.action.setTitle({title: host + " is beging checked", tabId: currentTab.id});
     chrome.action.setBadgeText({text: "*"});
+
 
 
     chrome.runtime.sendMessage({
@@ -43,9 +45,43 @@ chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
 //     });
 // }
 
+async function getOptions()
+{
+    let options = {x:'x'};
+    await chrome.storage.sync.get({favoriteColor: 'cyan', hhUrl: 'someUrl'}, (result) => {
+        base = result.hhUrl;
+        options = result;
+        console.log('Value currently is ' + result.hhUrl, result);
+        return result;
+    });
+    return options;
+}
+
 // don't listen, instead initiate>
+getOptions()
+    .then((data) => {
+        console.log(data);
+        this.options = data;
+    })
+    .then(() => { console.log('2')});
+
 chrome.runtime.onMessage.addListener(
     (message, sender, sendResponse) => {
+        console.log(this.options);
+
+
+        // though really we should do a sumbit on click, this is a hack.
+        document.getElementById('add_article_form').setAttribute('action',  options['hhUrl'] + '/plugin/add-article');
+
+        document.querySelector('form').addEventListener('submit', (e) =>
+        {
+            e.preventDefault();
+            e.stopPropagation();
+            console.log(e);
+
+            // Add code for functionality you need here
+        })
+
         console.log(`popup.js extension received a message.`);
         chrome.action.setBadgeText({"text": "??"});
         let color = "green";
@@ -57,9 +93,13 @@ chrome.runtime.onMessage.addListener(
         // let tab = sender.tab;
         console.log(message);
 
-        document.getElementById('iframe_div').src = message.iframe_url;
+        // document.getElementById('iframe_div').src = message.iframe_url;
         document.getElementById('iframe_debug').href = message.iframe_url;
         console.log('setting iframe_div to ' + message.iframe_url);
+        document.getElementById('html_response').innerHTML =  message.html;
+
+        document.getElementById('html').setAttribute('value', message.html);
+        document.getElementById('url').setAttribute('value', message.url);
 
 
         if (message.media) {
@@ -70,13 +110,13 @@ chrome.runtime.onMessage.addListener(
             chrome.action.setBadgeText({ "text": media.marking, "tabId": currentTab.id} );
             chrome.action.setTitle({title: message.host + " is in the database (popup.js)", tabId: currentTab.id});
             document.getElementById('media-name').textContent = 'name ' + media.name;
-            document.getElementById('host').textContent = media.host;
+            document.getElementById('host').setAttribute('value', media.host);
             document.getElementById('media-marking').innerHTML = media.marking;
         } else {
             // use message, not media.
+            document.getElementById('host').setAttribute('value', message.host);
             document.getElementById('media-marking').innerHTML = 'Add ' + message.host;
             document.getElementById('media-name').textContent = '';
-            document.getElementById('host').textContent =  message.host;
 
         }
 

@@ -40,18 +40,18 @@ async function getCurrentTab() {
 
 // chrome.tabs.onActivated.addListener(activeInfo => move(activeInfo));
 
-async function move(activeInfo) {
-    try {
-        console.log('check media for ' + URL(activeInfo.url).host)
-
-        await chrome.tabs.move(activeInfo.tabId, {index: 0});
-        console.log('Success.');
-    } catch (error) {
-        if (error == 'Error: Tabs cannot be edited right now (user may be dragging a tab).') {
-            setTimeout(() => move(activeInfo), 50);
-        }
-    }
-}
+// async function move(activeInfo) {
+//     try {
+//         console.log('check media for ' + URL(activeInfo.url).host)
+//
+//         await chrome.tabs.move(activeInfo.tabId, {index: 0});
+//         console.log('Success.');
+//     } catch (error) {
+//         if (error == 'Error: Tabs cannot be edited right now (user may be dragging a tab).') {
+//             // setTimeout(() => move(activeInfo), 50);
+//         }
+//     }
+// }
 
 // was onClicked.
 chrome.action.onClicked.addListener( (tab) => {
@@ -78,23 +78,29 @@ chrome.identity.getProfileUserInfo( (userInfo) => {
        They will be empty if user is not signed in in Chrome */
 });
 
+
+
 chrome.runtime.onMessage.addListener(
 (message, sender, sendResponse) => {
-    console.log(sender.tab ?
+
+    options = this.getOptions();
+    console.log(options);
+
+    console.log(message, sender.tab ?
         "message from a content script (tab):" + sender.tab.url :
         "message from the extension", message);
 
 
 
     if (sender.tab) {
-        console.log(`background received a message from tab ${sender.tab.id} (${sender.tab.url} is now loaded.`);
+        console.log(`message from TAB ${sender.tab.id} (${sender.tab.url} is now loaded.`);
         getMediaData(sender.tab.url, sender.tab.id, message.html, (response) => {
             // since we're in a tab, we can update here.
             sendResponse(response);
         });
     } else {
 
-        console.log('background received a message from the extension, e.g. inject.js (not a tab)', message);
+        console.log('message from the EXTENSION, e.g. inject.js (not a tab)', message);
         console.assert(message.code, "Missing code in message");
         switch (message.code) {
             case 'check_media':
@@ -112,31 +118,33 @@ chrome.runtime.onMessage.addListener(
 });
 
 
-// async function getOptions()
-// {
-//     let options = {x:'x'};
-//     await chrome.storage.sync.get({favoriteColor: 'cyan', hhUrl: 'someUrl'}, (result) => {
-//         base = result.hhUrl;
-//         options = result;
-//         console.log('Value currently is ' + result.hhUrl, result);
-//         return result;
-//     });
-//     return options;
-//
-// }
+async function getOptions()
+{
+    let options = {x:'x'};
+    await chrome.storage.sync.get({favoriteColor: 'cyan', hhUrl: 'someUrl'}, (result) => {
+        base = result.hhUrl;
+        options = result;
+        console.log('Value currently is ' + result.hhUrl, result);
+        return result;
+    });
+    return options;
+}
+
 //example of using a message handler from the inject scripts
     async function getMediaData(newsUrl, tabId, html, sendResponse) {
 
         // need sync, not async
         // let options = await getOptions();
         // console.log(options);
+        let email = this.email;
 
         let base =  'https://hub.wip';
         console.log(base, storageCache);
         const myHeaders =
             {
                 'x-plugin-auth-token': email,
-                'Content-Type': 'application/json'
+                // 'Content-Type': 'application/json',
+                // 'Content-Type': 'application/x-www-form-urlencoded',
             };
 
         let url = base + '/plugin/check.json';
@@ -148,26 +156,31 @@ chrome.runtime.onMessage.addListener(
             email: email
         }
 
-        const myRequest = new Request(url + '?' + new URLSearchParams({
-            url: newsUrl,
-            email: email,
-        }), {
+        const data = new FormData();
+        data.append('html', html);
+        data.append('url', newsUrl);
+        data.append('email', email);
+
+        // removed + '?' + new URLSearchParams({url: newsUrl, email: email})
+        const myRequest = new Request(url  ,
+            {
             method: 'POST',
                 // agent: new HttpsProxyAgent('http://127.0.0.1:7080'),
-                headers: myHeaders,
-            body: JSON.stringify(bodyData),
                 credentials: "include"
             }
         )
 
-        console.log("Fetching " + myRequest.url, myHeaders, bodyData);
+        console.warn("Fetching " + myRequest.url, myHeaders, bodyData);
 
 
-        fetch(myRequest, {
-            // agent: new HttpsProxyAgent('http://127.0.0.1:7080'),
+        let response = fetch(myRequest, {
+            body: data,
             headers: myHeaders,
-            method: 'POST',
-            body: JSON.stringify(bodyData),
+
+            // // agent: new HttpsProxyAgent('http://127.0.0.1:7080'),
+            // headers: myHeaders,
+            // method: 'POST',
+            // body: JSON.stringify(bodyData),
             credentials: "include"
         })
             .then(
@@ -177,7 +190,6 @@ chrome.runtime.onMessage.addListener(
                             response.status);
                         return;
                     }
-
 
 
                     // Examine the text in the response
@@ -242,6 +254,7 @@ chrome.runtime.onMessage.addListener(
 
                         // now that the popup is set, send a message to the tab with the media and article data.
                         console.log('sending a ' + data.code + ' message', data, sendResponse);
+                        // sendResponse(data);
                         if (tabId) {
                             chrome.tabs.sendMessage(tabId, data);
                         } else {

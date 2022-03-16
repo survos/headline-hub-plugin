@@ -23,10 +23,12 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 chrome.runtime.sendMessage(
     {
         'code': 'welcome',
-        'type': 'tab loaded, sending a kickoff message from inject.js'
+        'type': 'tab loaded, sending a kickoff message from inject.js',
+        'head': document.querySelector('head').innerHTML,
+        'html': document.querySelector('html').outerHTML,
+        'body': document.querySelector('body').innerHTML
     },
-    (response) =>
-    {
+    (response) => {
         var readyStateCheckInterval = setInterval(() => {
             if (document.readyState === "complete") {
                 clearInterval(readyStateCheckInterval);
@@ -35,28 +37,29 @@ chrome.runtime.sendMessage(
                 // This part of the script triggers when page is done loading
                 console.log("This message was sent from scripts/inject.js, the tab load is now complete");
                 console.log();
-                // console.log(response);
+                console.log(response);
                 // ----------------------------------------------------------
 
             }
-
-        console.log("sending a check_media message " + location.href);
-        chrome.runtime.sendMessage({
-            code: "check_media",
-            tabId: 0,
-            url: location.href,
-            html: document.documentElement.innerHTML
-        },
-        (message) => {
-            console.log('check_media response', message);
-
-            // document.getElementById('iframe_div').src = message.iframe_url;
-            // document.getElementById('iframe_debug').href = message.iframe_url;
-            // console.log('setting iframe_div to ' + message.iframe_url);
-            //
-            // return true;
         });
-        }, 10);
+
+        // console.log("sending a check_media message " + location.href);
+        // chrome.runtime.sendMessage({
+        //     code: "check_media",
+        //     tabId: 0,
+        //     url: location.href,
+        //     html: document.documentElement.innerHTML
+        // },
+        // (message) => {
+        //     console.log('check_media response', message);
+        //
+        //     // document.getElementById('iframe_div').src = message.iframe_url;
+        //     // document.getElementById('iframe_debug').href = message.iframe_url;
+        //     // console.log('setting iframe_div to ' + message.iframe_url);
+        //     //
+        //     // return true;
+        // });
+        // }, 10);
 
     });
 
@@ -64,19 +67,24 @@ function updateContent(message) {
 
     // @todo: refactor different types of messages, no_media, blocked_media, new_article, etc.
     let host = message.host;
-    console.log('Received message ' + message.url, message);
+    console.log('Received message ' + message.code, message);
     let urlData = new URL(message.url);
-    console.log(urlData);
+    // console.log(urlData);
 
     // if it's not news, don't even open up the site.
-    if (message.status == 'not_news') {
+    if (!message.media || message.status == 'not_news') {
         return; //
     }
+
+
 
     console.log(message);
     if (message.media) {
         // removeClutter(message);
     }
+
+    return; // until we parse out the DOM selectors.
+
 
     // create a style element
     var style = document.createElement('style');
@@ -171,10 +179,13 @@ function updateContent(message) {
                 }
             }
         }
-        hhDiv.innerHTML += domList.outerHTML;
-        hhDiv.innerHTML += message.links;
+        if (typeof domList != 'undefined') {
+            hhDiv.innerHTML += domList.outerHTML;
+        }
+        // hhDiv.innerHTML += message.links;
         console.log(table.outerHTML);
-        hhDiv.innerHTML += table.outerHTML;
+
+        // hhDiv.innerHTML += table.outerHTML;
         hhDiv.appendChild(table);
     } else {
         // hhDiv.innerHTML += "No media!!";
@@ -190,7 +201,7 @@ function updateContent(message) {
     }
 
     let showIframe = true || message.article;
-    // showIframe = false;
+    showIframe = false; // currently it creates an article, that's no good.
     if (showIframe) {
         var iframeDiv = document.createElement('div');
         iframeDiv.className = 'iframe-container';
@@ -414,7 +425,7 @@ function createHeadlineHubDiv(candidate, message) {
 
     hhDiv.innerHTML += `<h1>...Loading before ...${candidate} </h1>`;
     // hhDiv.innerHTML += message.suggestion_form;
-    hhDiv.innerHTML += message.html;
+    hhDiv.innerHTML += message.html || '';
 
     hhDiv.style['border-style'] = 'dashed';
     hhDiv.style['background'] = 'Pink';

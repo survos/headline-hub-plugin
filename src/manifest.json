@@ -5,12 +5,12 @@
   "description": "Tools for adding articles to headlinehub.org",
   "homepage_url": "http://headlinehub.org",
   "icons": {
-    "16": "icons/favicon-16x16.png",
-    "32": "icons/favicon-32x32.png"
+    "16": "./icons/favicon-16x16.png",
+    "32": "./icons/favicon-32x32.png"
   },
   "action": {
     "default_title": "HeadlineHub Check",
-    "default_icon": "icons/favicon-32x32.png",
+    "default_icon": "./icons/favicon-32x32.png",
     "default_popup": "/popup/popup.html"
   },
 
@@ -33,6 +33,7 @@
   ],
   "host_permissions": [
     "http://www.blogger.com/",
+    "https://*.wip/",
     "*://*/*"
   ],
 
@@ -60,7 +61,6 @@
         "*://jardinoado.herokuapp.com/",
         "*://*.stackoverflow.com/*",
         "*://*.stackexchange.com/*",
-        "*://*.symfony.com/*",
         "*://*.netflix.com/*",
         "*://*.twitter.com/*",
         "*://*.php.net/*",
